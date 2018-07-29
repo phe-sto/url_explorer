@@ -108,9 +108,10 @@ if __name__ == '__main__':
     t1 = perf_counter()
     if output_file is not None:
         with open(output_file, 'w', newline='') as csvfile:
-            result_writer = csv.writer(csvfile, delimiter=';')
+            result_writer = csv.writer(csvfile, delimiter=' ')
             for url in UrlChecker.url_exist:
-                result_writer.writerow(url)
-    print("""\nNumber of URL(s) tested is {0} in {1:.2f} seconds.
-    \nNumber of valid URL(s) found is {2} :
-    \n{3}""".format(len(url_list), float(t1 - t0), len(UrlChecker.url_exist), UrlChecker.url_exist))
+                result_writer.writerow([url])
+    else:
+        print("""\nNumber of URL(s) tested is {0} in {1:.2f} seconds.
+        \nNumber of valid URL(s) found is {2} :
+        \n{3}""".format(len(url_list), float(t1 - t0), len(UrlChecker.url_exist), UrlChecker.url_exist))
