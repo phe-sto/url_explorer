@@ -24,7 +24,7 @@ MESSAGE = """
 \/    \__,_| .__/\____/   \/          christophe.brun@papit.fr 
            |_|                  
 
-WARNING #1 dot '.' is a regular expression symbol. Don't forgot to escape it if it is not
+WARNING #1 Dot '.' is a regular expression symbol. Don't forgot to escape it if it is not
 meant to be a regular expression. For instance to search for google.com subdomain https://www\...\.google\.com .
 First and third dot are escaped but not the second.
 WARNING #2 Depend on exrex python package to generate all the URL(s) based on a regex. Therefore a pip install is
@@ -70,6 +70,8 @@ class UrlChecker(Thread):
             urllib.request.urlopen(self.url, timeout=5)
             UrlChecker.url_exist.append(self.url)
         except socket.timeout:
+            pass
+        except ConnectionResetError:
             pass
         except URLError:
             pass
