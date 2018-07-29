@@ -10,19 +10,28 @@ from http.client import InvalidURL, RemoteDisconnected
 from threading import Thread, active_count
 from time import sleep, perf_counter
 from urllib.error import URLError
-
-import exrex
 import pip
+import socket
 
 pip.main(['install', 'exrex', '--quiet'])
-MESSAGE = """\nWARNING #1 dot '.' is a regular expression symbol. Don't forgot to escape it if it is not
-    \nmeant to be a regular expression. For instance to search for google.com sudomain https://www\...\.google\.com .
-    \nFirst and third dot are escaped but not the second.
-    \nWARNING #2 Depend on exrex python package to generate all the URL(s) based on a regex. Therefore a pip install is
-    \nperformance at the beginning of the script. This pip command might force you to sudo or log as administrator,
-    \nroot, etc. Enter a regex pattern URL to check for exstance: """
+import exrex
 
-MAX_THREAD = 1000
+MESSAGE = """
+   ___             _____  _____ 
+  / _ \__ _ _ __   \_   \/__   \\
+ / /_)/ _` | '_ \   / /\/  / /\/      INFOGESTION & CONSEIL IT
+/ ___/ (_| | |_) /\/ /_   / /   
+\/    \__,_| .__/\____/   \/          christophe.brun@papit.fr 
+           |_|                  
+
+WARNING #1 dot '.' is a regular expression symbol. Don't forgot to escape it if it is not
+meant to be a regular expression. For instance to search for google.com subdomain https://www\...\.google\.com .
+First and third dot are escaped but not the second.
+WARNING #2 Depend on exrex python package to generate all the URL(s) based on a regex. Therefore a pip install is
+performance at the beginning of the script. This pip command might force you to sudo or log as administrator,
+root, etc. Enter a regex pattern URL to check for existence: """
+
+DEFAULT_MAX_THREAD = 1000
 
 
 class UrlCheckerException(Exception):
@@ -60,6 +69,8 @@ class UrlChecker(Thread):
         try:
             urllib.request.urlopen(self.url, timeout=5)
             UrlChecker.url_exist.append(self.url)
+        except socket.timeout:
+            pass
         except URLError:
             pass
         except ValueError:
@@ -71,17 +82,24 @@ class UrlChecker(Thread):
 
 
 if __name__ == '__main__':
+    # ==================================================================================================================
     # Main procedure
+    # ==================================================================================================================
+    # Argument definition
     parser = argparse.ArgumentParser(
-        description="Regular expression to search for URL(s) and optionnal ouput CSV file")
-    parser.add_argument('-of', '--output_file', type=str, help='Write an output CSV file with results',
-                        required=False)
+        description="Regular expression to search for URL(s), optionnal ouput CSV file and max thread number")
     parser.add_argument('-re', '--regular_expression', type=str, help='Regex pattern to search for URL(s)',
+                        required=False)
+    parser.add_argument('-mt', '--max_thread', type=int, help='Maximum number of thread at a time',
+                        required=False)
+    parser.add_argument('-of', '--output_file', type=str, help='Output CSV file name',
                         required=False)
     # input arguments
     args = parser.parse_args()
     output_file = args.output_file
     url_pattern = args.regular_expression
+    max_thread = args.max_thread
+    # Input text if no argument
     if url_pattern is None:
         # Input message explaining the script and input
         url_pattern = input(MESSAGE)
@@ -92,11 +110,14 @@ if __name__ == '__main__':
     # Initialize all threads
     for url in url_list:
         globals()['thread_{0}'.format(url)] = UrlChecker(url)
+    # if no argument for maximum thread, default is 1000
+    if max_thread is None:
+        max_thread = DEFAULT_MAX_THREAD
     # Start all threads with sleep in case of max thread reached
     for url in url_list:
         while True:
             # Max reached
-            if active_count() == MAX_THREAD:
+            if active_count() == max_thread:
                 # Wait for some threads to end
                 sleep(0.1)
             else:
@@ -106,11 +127,13 @@ if __name__ == '__main__':
         globals()['thread_{0}'.format(url)].join()
     # End time
     t1 = perf_counter()
+    # In case of output file argument write result to a CSV
     if output_file is not None:
         with open(output_file, 'w', newline='') as csvfile:
             result_writer = csv.writer(csvfile, delimiter=' ')
             for url in UrlChecker.url_exist:
                 result_writer.writerow([url])
+    # If no output file argument, a report is printed
     else:
         print("""\nNumber of URL(s) tested is {0} in {1:.2f} seconds.
         \nNumber of valid URL(s) found is {2} :
