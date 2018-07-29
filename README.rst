@@ -47,7 +47,7 @@ Pass the maximum thread number (limit to 500):
       python3 url_explorer.py -re 'http://www\.g..gle\.com' -mt 500
 
    .. warning:: Dot '.' is a regular expression symbol. Don't forgot to escape it if it is not
-      meant to be a regular expression. For instance to search for google.com subdomain https://www\...\.google\.com .
+      meant to be a regular expression. For instance to search for google.com subdomain https://www\\...\\.google\\.com .
       First and third dot are escaped but not the second.
 
    .. warning:: Depend on exrex python package to generate all the URL(s) based on a regex. Therefore a pip install is
