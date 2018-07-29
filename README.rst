@@ -1,3 +1,10 @@
+         ___             _____  _____
+        / _ \__ _ _ __   \_   \/__   \\
+       / /_)/ _` | '_ \   / /\/  / /\/      INFOGESTION & CONSEIL IT
+      / ___/ (_| | |_) /\/ /_   / /
+      \/    \__,_| .__/\____/   \/          christophe.brun@papit.fr
+                 |_|
+
 ============
 URL EXPLORER
 ============
@@ -34,13 +41,13 @@ Pass the URL regex pattern as argument (don't forget the quotes for the regex):
 
       python3 url_explorer.py -re 'http://www\.g..gle\.com'
 
-Pass the CSV output file name, otherwise the result of the URL(s) found is printed:
+Pass the CSV output file name as argument, otherwise the result of the URL(s) found is printed:
 
    .. code-block:: bat
 
       python3 url_explorer.py -re 'http://www\.g..gle\.com' -of google.csv
 
-Pass the maximum thread number (limit to 500):
+Pass the maximum thread number as argument (limit to 500):
 
    .. code-block:: bat
 
