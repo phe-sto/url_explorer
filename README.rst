@@ -2,7 +2,7 @@
 URL EXPLORER
 ============
 
-This script make it easy to research the existence of URL(s) based on a regular expression.
+This script make it easy to research the existence of URL(s) based on a regular expression. Useful for security of forgotten folders.
 Thank to the exrex package that can compute every possibilities based on a regular expression.
 The package is installed if necessary at the beginning of this script. Once started the script launch many thread to
 check for the existence of the URL. The Default number of thread in 1000 but can be passed as argument. It make the process
@@ -51,7 +51,7 @@ Pass the maximum thread number as argument (limit to 500):
       First and third dot are escaped but not the second.
 
    .. warning:: Depend on exrex python package to generate all the URL(s) based on a regex. Therefore a pip install is
-      performance at the beginning of the script. This pip command might force you to sudo or log as administrator,
+      performed at the beginning of the script. This pip command might force you to sudo or log as administrator,
       root, etc.
 
 .. _Python 3.6: https://www.python.org/downloads/

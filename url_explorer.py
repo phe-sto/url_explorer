@@ -106,7 +106,7 @@ if __name__ == '__main__':
         # Input message explaining the script and input
         url_pattern = input(MESSAGE)
     # Generate a list of possible URL, unduplicated with set()
-    url_list = list(set(exrex.generate(url_pattern)))
+    url_list = list(set(exrex.generate(url_pattern, limit=10000000)))
     # Start counter
     t0 = perf_counter()
     # Initialize all threads
@@ -130,7 +130,7 @@ if __name__ == '__main__':
     # End time
     t1 = perf_counter()
     # In case of output file argument write result to a CSV
-    if output_file is not None:
+    if output_file is not None and len(UrlChecker.url_exist) > 0:
         with open(output_file, 'w', newline='') as csvfile:
             result_writer = csv.writer(csvfile, delimiter=' ')
             for url in UrlChecker.url_exist:
