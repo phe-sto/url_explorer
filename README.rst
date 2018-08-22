@@ -2,7 +2,7 @@
 URL EXPLORER
 ============
 
-This script make it easy to research the existence of URL(s) based on a regular expression. Useful for security of forgotten folders.
+This script make it easy to research the existence of URL(s) based on a regular expression. Useful for security of forgotten folders/URL/files etc...
 Thank to the exrex package that can compute every possibilities based on a regular expression.
 The package is installed if necessary at the beginning of this script. Once started the script launch many thread to
 check for the existence of the URL. The Default number of thread in 1000 but can be passed as argument. It make the process

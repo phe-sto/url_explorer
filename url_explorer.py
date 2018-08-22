@@ -1,20 +1,22 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # For argument like CSV an regex
 import argparse
 # To produce a CSV if desired
 import csv
+import socket
 import urllib.request
 from http.client import InvalidURL, RemoteDisconnected
 from threading import Thread, active_count
 from time import sleep, perf_counter
 from urllib.error import URLError
-import pip
-import socket
 
-pip.main(['install', 'exrex', '--quiet'])
-import exrex
+try:
+    import exrex
+except ModuleNotFoundError:
+    import pip
+    pip.main(['install', 'exrex', '--quiet'])
+    import exrex
 
 MESSAGE = """
    ___             _____  _____ 
@@ -33,6 +35,10 @@ root, etc. Enter a regex pattern URL to check for existence: """
 
 DEFAULT_MAX_THREAD = 1000
 
+# ======================================================================================================================
+# Threading explorer object
+# ======================================================================================================================
+
 
 class UrlCheckerException(Exception):
     """Specific exception raised by the UrlChecker class"""
@@ -50,7 +56,7 @@ class UrlChecker(Thread):
         # Initialize threading
         Thread.__init__(self)
 
-        if isinstance(url, str) is False:
+        if isinstance(url_to_check, str) is False:
             raise TypeError("First argument url_regex must  be a string type")
         self.url = url_to_check
 
@@ -83,10 +89,10 @@ class UrlChecker(Thread):
             pass
 
 
-if __name__ == '__main__':
-    # ==================================================================================================================
-    # Main procedure
-    # ==================================================================================================================
+# ======================================================================================================================
+# Main procedure
+# ======================================================================================================================
+def main():
     # Argument definition
     parser = argparse.ArgumentParser(
         description="Regular expression to search for URL(s), optionnal ouput CSV file and max thread number")
@@ -110,23 +116,24 @@ if __name__ == '__main__':
     # Start counter
     t0 = perf_counter()
     # Initialize all threads
+    thread_list = []
     for url in url_list:
-        globals()['thread_{0}'.format(url)] = UrlChecker(url)
+        thread_list.append(UrlChecker(url))
     # if no argument for maximum thread, default is 1000
     if max_thread is None:
         max_thread = DEFAULT_MAX_THREAD
     # Start all threads with sleep in case of max thread reached
-    for url in url_list:
+    for t in thread_list:
         while True:
             # Max reached
             if active_count() == max_thread:
                 # Wait for some threads to end
                 sleep(0.1)
             else:
-                globals()['thread_{0}'.format(url)].start()
+                t.start()
                 break
-    for url in url_list:
-        globals()['thread_{0}'.format(url)].join()
+    for t in thread_list:
+        t.join()
     # End time
     t1 = perf_counter()
     # In case of output file argument write result to a CSV
@@ -136,7 +143,14 @@ if __name__ == '__main__':
             for url in UrlChecker.url_exist:
                 result_writer.writerow([url])
     # If no output file argument, a report is printed
-    else:
+    elif output_file is None:
         print("""\nNumber of URL(s) tested is {0} in {1:.2f} seconds.
         \nNumber of valid URL(s) found is {2} :
         \n{3}""".format(len(url_list), float(t1 - t0), len(UrlChecker.url_exist), UrlChecker.url_exist))
+
+
+# ======================================================================================================================
+# Command line started
+# ======================================================================================================================
+if __name__ == '__main__':
+    main()
