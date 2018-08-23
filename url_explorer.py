@@ -10,11 +10,13 @@ from http.client import InvalidURL, RemoteDisconnected
 from threading import Thread, active_count
 from time import sleep, perf_counter
 from urllib.error import URLError
+import gc
 
 try:
     import exrex
 except ModuleNotFoundError:
     import pip
+
     pip.main(['install', 'exrex', '--quiet'])
     import exrex
 
@@ -34,6 +36,7 @@ performance at the beginning of the script. This pip command might force you to 
 root, etc. Enter a regex pattern URL to check for existence: """
 
 DEFAULT_MAX_THREAD = 1000
+
 
 # ======================================================================================================================
 # Threading explorer object
@@ -100,40 +103,54 @@ def main():
                         required=False)
     parser.add_argument('-mt', '--max_thread', type=int, help='Maximum number of thread at a time',
                         required=False)
+    parser.add_argument('-if', '--input_file', type=str, help='Input file name',
+                        required=False)
     parser.add_argument('-of', '--output_file', type=str, help='Output CSV file name',
                         required=False)
     # input arguments
     args = parser.parse_args()
+    input_file = args.input_file
     output_file = args.output_file
     url_pattern = args.regular_expression
     max_thread = args.max_thread
     # Input text if no argument
-    if url_pattern is None:
+    if input_file is not None and url_pattern is not None:
+        raise RuntimeError("Must choose to pass the regex(s) trough command line argument or file, not both.")
+    elif input_file is not None:
+        url_pattern = [line.rstrip('\n') for line in open(input_file)]
+    elif url_pattern is not None:
+        url_pattern = [url_pattern]
+    elif url_pattern is None:
         # Input message explaining the script and input
-        url_pattern = input(MESSAGE)
-    # Generate a list of possible URL, unduplicated with set()
-    url_list = list(set(exrex.generate(url_pattern, limit=10000000)))
+        url_pattern = [input(MESSAGE)]
     # Start counter
     t0 = perf_counter()
-    # Initialize all threads
-    thread_list = []
-    for url in url_list:
-        thread_list.append(UrlChecker(url))
-    # if no argument for maximum thread, default is 1000
-    if max_thread is None:
-        max_thread = DEFAULT_MAX_THREAD
-    # Start all threads with sleep in case of max thread reached
-    for t in thread_list:
-        while True:
-            # Max reached
-            if active_count() == max_thread:
-                # Wait for some threads to end
-                sleep(0.1)
-            else:
-                t.start()
-                break
-    for t in thread_list:
-        t.join()
+    threads = 0
+    for u_p in url_pattern:
+        # Generate a list of possible URL, deduplicated with set()
+        url_list = list(set(exrex.generate(u_p, limit=10000000)))
+        # Initialize all threads
+        thread_list = []
+        for url in url_list:
+            thread_list.append(UrlChecker(url))
+        # if no argument for maximum thread, default is 1000
+        if max_thread is None:
+            max_thread = DEFAULT_MAX_THREAD
+        # Start all threads with sleep in case of max thread reached
+        for t in thread_list:
+            threads += 1
+            while True:
+                # Max reached
+                if active_count() == max_thread:
+                    # Wait for some threads to end
+                    sleep(0.1)
+                else:
+                    t.start()
+                    break
+        for t in thread_list:
+            t.join()
+        del thread_list, url_list
+        gc.collect()
     # End time
     t1 = perf_counter()
     # In case of output file argument write result to a CSV
@@ -146,7 +163,7 @@ def main():
     elif output_file is None:
         print("""\nNumber of URL(s) tested is {0} in {1:.2f} seconds.
         \nNumber of valid URL(s) found is {2} :
-        \n{3}""".format(len(url_list), float(t1 - t0), len(UrlChecker.url_exist), UrlChecker.url_exist))
+        \n{3}""".format(threads, float(t1 - t0), len(UrlChecker.url_exist), UrlChecker.url_exist))
 
 
 # ======================================================================================================================
