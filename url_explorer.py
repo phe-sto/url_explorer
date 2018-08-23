@@ -4,13 +4,13 @@
 import argparse
 # To produce a CSV if desired
 import csv
+import gc
 import socket
 import urllib.request
 from http.client import InvalidURL, RemoteDisconnected
 from threading import Thread, active_count
 from time import sleep, perf_counter
 from urllib.error import URLError
-import gc
 
 try:
     import exrex
